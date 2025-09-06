@@ -12,3 +12,4 @@ wheels/
 # generated data
 *.wav
 *.raw
+*.mp3
