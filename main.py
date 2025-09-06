@@ -1,3 +1,4 @@
+import sys
 import pyaudio
 import random
 
@@ -89,7 +90,7 @@ def mangle(cursor, store, output):
         cursor.step()
 
 
-def main():
+def main(to_disk=False):
     p = pyaudio.PyAudio()
 
     stream = p.open(format=p.get_format_from_width(data_width),
@@ -99,13 +100,27 @@ def main():
                     output=True,
                     frames_per_buffer=chunk)
 
+    sinks = [stream]
+
+    if to_disk:
+        sinks.append(open('sputtering_dummy.raw', 'wb'))
+
+
     cursor = Cursor(len(proc_buff))
 
     for _ in range (0, int(sample_rate / chunk * runtime)):
 
         mangle(cursor, proc_buff, out_buff)
-        stream.write(bytes(out_buff))
+        b = bytes(out_buff)
+        for sink in sinks:
+            sink.write(b)
+
+    for sink in sinks:
+        sink.close()
 
 
 if __name__ == "__main__":
-    main()
+    if "-w" in sys.argv:
+        main(to_disk=True)
+    else:
+        main(to_disk=False)
